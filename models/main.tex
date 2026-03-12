@@ -1,0 +1,139 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{constraint}{Constraint}
+
+\title{Formal CSP Model: Traffic Intersection Control}
+\author{Angel Luna}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Problem Description}
+
+We model a four-way traffic intersection as a
+\textbf{Constraint Satisfaction Problem} (CSP).
+The goal is to find all valid signal configurations that permit
+vehicle flow without conflicts.
+
+\section{CSP Formulation}
+
+A CSP is defined as a triple $\langle \mathcal{X},\, \mathcal{D},\, \mathcal{C} \rangle$ where:
+\begin{itemize}
+  \item $\mathcal{X}$ is a finite set of variables,
+  \item $\mathcal{D}$ is a function assigning a domain to each variable,
+  \item $\mathcal{C}$ is a set of constraints over the variables.
+\end{itemize}
+
+\subsection{Variables}
+
+Let $\mathcal{X} = \{L_N,\; L_S,\; L_E,\; L_W\}$, where each variable
+$L_i$ represents the signal state of direction $i \in \{N, S, E, W\}$.
+
+\subsection{Domains}
+
+Each variable takes a binary value:
+\[
+  \mathcal{D}(L_i) = \{0,\; 1\} \quad \forall\, i \in \{N, S, E, W\}
+\]
+where $0 \equiv \text{Red}$ and $1 \equiv \text{Green}$.
+
+\subsection{Constraints}
+
+\begin{constraint}[No crossing conflict: N--E]
+North and East cannot both be green simultaneously, since their flows
+cross perpendicularly:
+\[
+  L_N + L_E \leq 1
+\]
+\end{constraint}
+
+\begin{constraint}[No crossing conflict: N--W]
+\[
+  L_N + L_W \leq 1
+\]
+\end{constraint}
+
+\begin{constraint}[No crossing conflict: S--E]
+\[
+  L_S + L_E \leq 1
+\]
+\end{constraint}
+
+\begin{constraint}[No crossing conflict: S--W]
+\[
+  L_S + L_W \leq 1
+\]
+\end{constraint}
+
+\begin{constraint}[Compatibility: N--S]
+North and South flow in opposite directions along the same axis and
+are compatible:
+\[
+  L_N + L_S \leq 2 \quad (\text{no restriction})
+\]
+\end{constraint}
+
+\begin{constraint}[Compatibility: E--W]
+East and West are similarly compatible:
+\[
+  L_E + L_W \leq 2 \quad (\text{no restriction})
+\]
+\end{constraint}
+
+\begin{constraint}[Liveness]
+At least one direction must be green at all times to ensure the
+intersection is not deadlocked:
+\[
+  L_N + L_S + L_E + L_W \geq 1
+\]
+\end{constraint}
+
+\section{Feasibility vs.\ Optimization}
+
+The CSP seeks \emph{feasibility}: any assignment
+$\mathbf{x} = (L_N, L_S, L_E, L_W) \in \{0,1\}^4$
+satisfying $\mathcal{C}$ is a valid solution.
+There is \textbf{no objective function}.
+
+If one wished to extend this to an \textbf{Integer Program} (IP)
+maximizing throughput, the objective would be:
+\[
+  \max \quad L_N + L_S + L_E + L_W
+\]
+subject to Constraints 1--7.
+The IP optimal is $z^* = 2$, achieved by exactly two compatible
+phases: $\{L_N, L_S\}$ or $\{L_E, L_W\}$.
+
+\section{Solution Space}
+
+The search space has $|\mathcal{D}|^{|\mathcal{X}|} = 2^4 = 16$ candidate
+assignments. After enforcing $\mathcal{C}$, the valid configurations are:
+
+\[
+\begin{array}{cccc|l}
+L_N & L_S & L_E & L_W & \text{Valid?} \\
+\hline
+0 & 0 & 0 & 1 & \checkmark \\
+0 & 0 & 1 & 0 & \checkmark \\
+0 & 0 & 1 & 1 & \checkmark \\
+0 & 1 & 0 & 0 & \checkmark \\
+0 & 1 & 0 & 1 & \checkmark \\
+0 & 1 & 1 & 0 & \checkmark \\
+1 & 0 & 0 & 0 & \checkmark \\
+1 & 0 & 0 & 1 & \checkmark \\
+1 & 0 & 1 & 0 & \checkmark \\
+1 & 1 & 0 & 0 & \checkmark \\
+\end{array}
+\]
+
+There are \textbf{10 valid configurations} out of 16 candidates.
+
+\end{document}
